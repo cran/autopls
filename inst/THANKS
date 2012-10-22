@@ -1,0 +1,1 @@
+Thanks go the authors of the pls package on which autopls is based: Bjørn-Helge Mevik, Ron Wehrens and Kristian Hovde Liland. Bjørn-Helge Mevik is also author of the VIP function used here. Tom Short (EPRI) wrote the pointLabel function in maptools. Parts of this function were used in plot.autopls.

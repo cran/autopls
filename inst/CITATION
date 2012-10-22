@@ -1,0 +1,20 @@
+citHeader("To cite package 'autopls' in publications use:")
+
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+vers <- paste("R package version", meta$Version)
+
+bibentry (
+  bibtype = "Article",
+  title = "Mapping plant strategy types using remote sensing",
+  author = as.person("Sebastian Schmidtlein, Hannes Feilhauer, Helge Bruelheide"),
+  journal = "Journal of Vegetation Science",
+  url = "http://dx.doi.org/10.1111/j.1654-1103.2011.01370.x",
+  doi = "10.1111/j.1654-1103.2011.01370.x",
+  pages = "n/a--n/a",
+  year = "early view",
+  textVersion = paste ("Schmidtlein, S, Feilhauer, H., Bruelheide, H. (2012)",
+                       ": Mapping plant strategy types using remote sensing. ",
+                       "Journal of Vegetation Science (early view). url = ",
+                       "http://dx.doi.org/10.1111/j.1654-1103.2011.01370.x", 
+                       sep = "")
+)

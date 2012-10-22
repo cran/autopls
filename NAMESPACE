@@ -1,0 +1,35 @@
+## Exported functions:
+export(
+       autopls,
+       cleanup,
+       get.iter,
+       get.lv,
+       jack.test.autopls,
+       metaval,
+       predicted,
+       prepro,
+       repCV,
+       reset,
+       set.iter,
+       set.lv,
+       slim,
+       uncertainty
+       )
+
+## Imports:
+import(pls)
+importFrom(graphics, plot)
+
+## S3 Methods:
+S3method(coef, autopls)
+S3method(fitted, autopls)
+S3method(plot, autopls)
+S3method(predict, autopls)
+S3method(predict, slim)
+S3method(print, autopls)
+S3method(print, slim)
+S3method(residuals, autopls)
+S3method(RMSEP, autopls)
+S3method(R2, autopls)
+S3method(summary, autopls)
+S3method(summary, slim)
