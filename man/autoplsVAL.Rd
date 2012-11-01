@@ -74,11 +74,11 @@
   data(murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model<-autopls (murnau.Y ~ murnau.X)
   
   ## Validation
-  R2(model)
-  R2(model, nc = 'all')  
+  R2 (model)
+  R2 (model, nc = 'all')  
   RMSEP (model)  
   metaval (model, 'R2', 'CV', ic = FALSE)
   

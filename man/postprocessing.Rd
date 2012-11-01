@@ -43,11 +43,11 @@
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
+  data (murnau.X)
+  data (murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model <- autopls (murnau.Y ~ murnau.X)
 
   ## new data
   new <- murnau.X + 500 

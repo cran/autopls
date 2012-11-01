@@ -19,7 +19,9 @@
 }
   \item{type}{specifying the type of plot. (\code{"all"}: all plot; 
      \code{"ovp"}: observed vs. predicted values; 
-     \code{"rmse"}: errors vs. numbers of latent vectors; 
+     \code{"ovp.test"}: test set: observed vs. predicted values; 
+     \code{"rmse"}: internal validation errors vs. numbers of latent vectors; 
+     \code{"rmse.test"}: test set errors vs. numbers of latent vectors; 
      \code{"rc"}: regression coefficients; 
      \code{"x.inf"}: influence plot (X-variance); 
      \code{"y.inf"}: influence plot (Y-variance); 
@@ -52,12 +54,12 @@
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
-  data(murnau.W)
+  data (murnau.X)
+  data (murnau.Y)
+  data (murnau.W)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model<-autopls (murnau.Y ~ murnau.X)
   
   ## plot results
   \dontrun{plot (model)}

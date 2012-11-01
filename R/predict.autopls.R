@@ -8,7 +8,6 @@ predict.autopls <- function (object, dat, ...)
   comp <- get.lv (object)
 
   ## Determine method
-  if (is.data.frame (dat) | is.list (dat)) dat <- as.matrix (dat)
   if (is.vector (dat)) method <- 'vec'
   if (is.matrix (dat)) method <- 'mat'
   if (class (dat) == 'RasterBrick') method <- 'rst'

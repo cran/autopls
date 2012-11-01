@@ -28,20 +28,20 @@
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
+  data (murnau.X)
+  data (murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model <- autopls (murnau.Y ~ murnau.X)
   
   ## select another iteration
-  newmodel <- set.iter(model,3)
+  newmodel <- set.iter (model,3)
   
   ## set another number of latent vectors
-  evennewermodel <- set.lv(newmodel,2)
+  evennewermodel <- set.lv (newmodel,2)
 
   ## return to the original values
-  firstmodel <- reset(evennewermodel)
+  firstmodel <- reset (evennewermodel)
 
 }
 \keyword{regression}

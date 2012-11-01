@@ -2,12 +2,37 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
   rcxlab = "Predictors", plab = FALSE, bw = FALSE, ...)
 { 
   
+  # Match arguments
+  type <- match.arg (type, c('all', 'ovp', 'ovp.test', 'rmse', 'rmse.test', 
+    'rc', 'x.inf', 'y.inf', 'meta'))
+
+  ## Some parameters
   lv <- get.lv (x)
   N <- nrow (x$scores)
   niter <- length (x$metapls$lv.history)
-  Xnames <- rownames (x$model$subX)
+  Xnames <- rownames (x$model$X)
+  val <- x$metapls$val
   if (is.null (Xnames)) Xnames <- 1:N
   if (type == 'meta' & niter == 1) stop ('No iterations')  
+  test <- ifelse (is.null (x$metapls$X.testset), FALSE, TRUE)
+  prep <- x$metapls$prep
+  
+  ## Testvalues for test sets
+  testval <- function (x)
+  {
+    Xtest <- x$metapls$X.testset [,x$predictors]
+    Ytest <- x$metapls$Y.testset
+    if (!is.na (prep)) Xtest <- Xtest / sqrt (rowSums (Xtest ^ 2)) 
+    nd <- data.frame (Y = Ytest, X = I (Xtest))
+    r2.all <- unlist (R2 (x, c('train', 'test'), 
+      ic = FALSE, newdata = nd, nc = lv))  
+    r2.cal <- r2.all$val1
+    r2.test <- r2.all$val2    
+    rmse.train <- RMSEP (x, c('train'), ic = FALSE, newdata = nd, nc = 'all')  
+    rmse.test <- RMSEP (x, c('test'), ic = FALSE, newdata = nd, nc = 'all')  
+    return (list (r2.cal = r2.cal, r2.test = r2.test, rmse.train = rmse.train, 
+      rmse.test = rmse.test)) 
+  }
   
   ## Observed vs. predicted
   ovpplot <- function (...)
@@ -26,9 +51,10 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
     y1 <- min (c(fit.cal, fit.val))
     y2 <- max (c(fit.cal, fit.val))    
     
+    descr <- paste (val, 'cross-validation: predicted vs. observed values')
     par (mar=c(6,6,6,2))
     plot (c(x1,x2), c(y1,y2), type = 'n', axes = FALSE,
-      xlab = '', ylab = '', main = 'Predicted vs. observed values')
+      xlab = '', ylab = '', main = descr)
     axis (1)
     axis (2, las = 2)
     mtext ('Predicted', side = 2, line = 4) 
@@ -57,8 +83,58 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
     par(opar)
 
     out <- cbind (Y, fit.cal, fit.val)
+    colnames (out) <- c('Observed', 'Calibration', 'Predicted')
     out
   }
+
+
+  ## Observed vs. predicted for test set
+  ovpplot.testset <- function (...)
+  {
+    
+    if (!test) stop ('No testset available')
+    validation <- testval (x)    
+    opar <- par (mar = c(5,6,5,2) + 0.1)
+    Xtest <- x$metapls$X.testset         ## Note (predictors are selected 
+    Ytest <- x$metapls$Y.testset         ## silently within predict.autopls)
+    fit.val <- predict (x, Xtest)     
+    r2.cal <- validation$r2.cal
+    r2.val <- validation$r2.test
+
+    x1 <- min (Ytest)
+    x2 <- max (Ytest)
+    y1 <- min (fit.val)
+    y2 <- max (fit.val)    
+    
+    par (mar=c(6,6,6,2))
+    plot (c(x1,x2), c(y1,y2), type = 'n', axes = FALSE,
+      xlab = '', ylab = '', main = 'Test set: predicted vs. observed values ')
+    axis (1)
+    axis (2, las = 2)
+    mtext ('Predicted', side = 2, line = 4) 
+    mtext ('Observed', side = 1, line = 3)
+
+    points (Ytest, fit.val, pch=19, col = 'blue')  
+    if (plab) 
+    {
+      txtpos <- pL (x = Ytest, y = fit.val, labels = rownames(Xtest))
+      text (txtpos$x, txtpos$y, labels = rownames(Xtest), cex = .7, col = 'blue')    
+    }
+    
+    pred.val <- lm (fit.val ~ Ytest)
+    legend ('bottomright', c(paste ('R2 cal = ', round (r2.cal, 3)), 
+      paste ('R2 val = ', round (r2.val, 3))), text.col = c('red','blue'), 
+      bty = 'n') 
+    box ()
+    clip (x1,x2,y1,y2) 
+    abline (pred.val, col = 'blue')
+
+    par(opar)
+
+    out <- cbind (Ytest, fit.val)
+    colnames (out) <- c('Observed', 'Predicted')
+    return (out)
+  }      
 
   rmseplot <- function (...)
   {
@@ -68,11 +144,12 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
     rownames (rmse) <- c ('RMSEcal', 'RMSEval')
     if (ncol (rmse) > 40) rmse <- rmse[,1:40]
 
+    descr <- paste ('RMSE vs. LV in training and ', val, 'cross-validation')
     opar <- par(mar = c(5,6,5,2) +0.1)
     xv <- lv - 0.5
     yv <- rmse [2, lv] * 1.01    
     plot (0, xlim = c(0, ncol (rmse)), ylim = c(0, max (rmse)), 
-      main = 'RMSE vs. number of latent vectors', axes = FALSE, 
+      main = descr, axes = FALSE, 
       xlab = '', ylab = '', type = 'n') 
     lines (c(xv, xv), c (par ('usr') [4], yv),    
       col = grey (0.2), lty = 3)   
@@ -105,12 +182,60 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
     out 
   }
   
+  rmseplot.testset <- function (...)
+  {
+
+    rmse <- testval (x)
+    rmse.train <- as.vector (rmse$rmse.train$val)
+    rmse.test <- as.vector (rmse$rmse.test$val)
+    
+    rmse <- cbind (rmse.train, rmse.test)    
+    colnames (rmse) <- c('RMSEcal', 'RMSEtest')
+    rownames (rmse) <- 1:length (rmse.train) 
+    if (nrow (rmse) > 40) rmse <- rmse[1:40,]
+
+    descr <- paste ('RMSE vs. LV in training and test set validation')
+    opar <- par(mar = c(5,6,5,2) +0.1)
+    xv <- lv - 0.5
+    yv <- rmse [lv, 1] * 1.01    
+    plot (0, xlim = c(0, nrow (rmse)), ylim = c(0, max (rmse [,1:2])), 
+      main = descr, axes = FALSE, 
+      xlab = '', ylab = '', type = 'n') 
+    lines (c(xv, xv), c (par ('usr') [4], yv),    
+      col = grey (0.2), lty = 3)   
+    points (x = xv, y = par ('usr') [4], 
+      pch = 25, bg = grey (0.2))
+    barplot (rmse [,2], add = TRUE, space=0, col=4, 
+      border='navy', ylim=c (0, max (rmse [2,])), 
+      las=2, axisnames=FALSE, axes = FALSE)
+    barplot (rmse [,1], add = TRUE, space=0, col=2, 
+      border='red4', axes=FALSE, axisnames=FALSE)
+
+    axis (1)
+    axis (2, las = 2)
+    mtext ('Number of latent vectors', side = 1, line = 3)
+    mtext ('RMSE', side = 2, line = 4)
+
+    box (bty = 'u')
+    lp <- legend ('topright', legend='cal', 'val', pch=15, 
+      horiz = TRUE, plot = FALSE) 
+    lx <- lp$rect$left - lp$rect$w ## Legend position (x)
+    ly <- lp$rect$top + lp$rect$h ## Legend position (y)
+    par (xpd = TRUE)
+    legend (lx, ly, legend=c ('cal', 'val'), pch=15, col=c (2,4), 
+      horiz = TRUE, bty = 'n') 
+
+    par(opar)
+    
+    return (rmse) 
+  }
+
   rcplot <- function (...)
   {
     reg.coef <- coef (x)  
     scaling <- unlist (x$metapls$scaling)
-    Xnames <- colnames (x$model$subX)
-    Xlog <- unlist (x$predictors)  
+    Xnames <- colnames (x$model$X)
+    Xlog <- x$predictors
     jt <- data.frame (suppressWarnings 
       (jack.test.autopls (x, nc = lv)) $pvalues)    
     jtout <- sigcode <- as.vector (t(jt))
@@ -120,7 +245,11 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
     sigcode [jtout < 0.05] <- 4
     sigcode [jtout < 0.01] <- 5
   
-    if (is.null (wl)) loc <- 1:sum (Xlog)
+    if (is.null (wl))
+    { 
+      loc <- 1:length (Xlog)
+      loc <- loc [Xlog]
+    }
     else 
     {
       lw <- length (wl)
@@ -230,7 +359,7 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
   x.influence <- function (...)
   {     
     ## Get data
-    pred <- x$model$subX
+    pred <- x$model$X
     scores <- x$scores [,1:lv]
     loading <- x$loadings [,1:lv]    
     calX <- scores %*% t (loading)
@@ -273,7 +402,7 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
   y.influence <- function (...)
   {     
     ## Get data
-    pred <- x$model$subX
+    pred <- x$model$X
     res <- residuals (x)
     scores <- x$scores [,1:lv]
     
@@ -490,27 +619,35 @@ plot.autopls <- function (x, type = 'all', wl = NULL,
 
   ## Open device
   dev.new ()    
+  
   if (type == 'all')
   {  
     out1 <- ovpplot ()
     oask <- devAskNewPage (TRUE)
     on.exit (devAskNewPage (oask))
-    out2 <- rmseplot ()
-    out3 <- rcplot ()
-    out4 <- x.influence ()
-    out5 <- y.influence ()
-    if (niter > 1) 
-    {
-      out6 <- metaplot ()
-      out <- list (ovp = out1, rmse = out2, rc = out3, 
-        x.inf = out4, y.inf = out5, meta = out6)
-    }
-    else out <- list (ovp = out1, rmse = out2, rc = out3, x.inf = out4, 
-      y.inf = out5)  
+    if (test) out2 <- ovpplot.testset ()
+    out3 <- rmseplot ()
+    if (test) out4 <- rmseplot.testset ()
+    out5 <- rcplot ()
+    out6 <- x.influence ()
+    out7 <- y.influence ()
+    if (niter > 1) out8 <- metaplot ()
+    
+    out <- list (
+      ovp = out1, 
+      if (test) ovp.test <- out2,
+      rmse = out3, 
+      if (test) rmse.test <- out4,
+      rc = out5, 
+      x.inf = out6, 
+      y.inf = out7, 
+      if (niter > 1) meta = out8)
   }
   
   if (type == 'ovp') out <- ovpplot ()
+  if (type == 'ovp.test') out <- ovpplot.testset ()
   if (type == 'rmse') out <- rmseplot ()
+  if (type == 'rmse.test') out <- rmseplot.testset ()
   if (type == 'rc') out <- rcplot ()   
   if (type == 'x.inf') out <- x.influence ()
   if (type == 'y.inf') out <- y.influence ()

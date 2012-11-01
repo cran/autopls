@@ -73,26 +73,22 @@ get.iter <- function (object)
 
 slim <- function (object)
 {
-  new.object <- list (
-    coefficients = coef (object),
-    method = object$method,
-    scale = object$scale,
-    call = object$metapls$call,    
-    predictors = object$predictors,
-    metapls = list (
-      current.iter = get.iter (object),
-      current.lv = get.lv (object),
-      preprocessing = object$metapls$preprocessing,
-      scaling = object$metapls$scaling
-      ),
-    slimobj = list (
-      intercept = coef (object, intercept = TRUE) [1], 
-      r2 = R2 (object, 'all'),
-      rmse = RMSEP (object, 'all'),
-      N = length (object$metapls$Y)
-      )  
-    )
-
-  class (new.object) <- 'slim'
-  return (new.object)
+  nobj <- list (coefficients = coef (object),
+                method       = object$method,
+                scale        = object$scale,
+                call         = object$metapls$call,    
+                predictors   = object$predictors,
+                metapls = list (current.iter  = get.iter (object),
+                           current.lv    = get.lv (object),
+                           preprocessing = object$metapls$preprocessing,
+                           scaling       = object$metapls$scaling,
+                           val           = object$metapls$val),
+                slimobj = list (intercept = coef (object, intercept = TRUE) [1], 
+                           r2            = R2 (object, 'all'),
+                           rmse          = RMSEP (object, 'all'),
+                           N             = length (object$metapls$Y)))  
+ 
+  class (nobj) <- 'slim'
+  return (nobj)
 }
+

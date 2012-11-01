@@ -8,7 +8,7 @@
   \code{predict.autopls}
 }
 \usage{
-  prepro(X, prep = NA)
+  prepro(X, prep = 'bn')
 }
 \arguments{
   \item{X}{

@@ -32,14 +32,14 @@
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
+  data (murnau.X)
+  data (murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model <- autopls (murnau.Y ~ murnau.X)
   
   ## set another number of latent vectors
-  newmodel <- set.iter(model,3)
+  newmodel <- set.iter (model,3)
 }
 \keyword{regression}
 \keyword{multivariate}

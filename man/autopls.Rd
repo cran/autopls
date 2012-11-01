@@ -8,28 +8,37 @@ autopls
 Partial least squares regression with backward selection of predictors
 }
 \usage{
-autopls(resp, pred, prep = NA, val = "LOO", spectral = TRUE, 
-scaling = TRUE, stingy = TRUE, verbose = TRUE, backselect = TRUE,
-jump = NA, thorough = FALSE)
+autopls (formula, data, testset = NULL, tselect = 'none', prep = NA, 
+  val = "LOO", spectral = TRUE, scaling = TRUE, stingy = TRUE, 
+  verbose = TRUE, backselect = 'auto', jt.thresh = 0.1, vip.thresh = 0.2, 
+  jump = NA, method = 'kernelpls', thorough = FALSE)
 }
 \arguments{
-  \item{resp}{
-     Vector with single response variable
+  \item{formula}{
+     model formula
 }
-  \item{pred}{
-     Matrix with predictors (number and order of rows fitting \code{resp}) 
+  \item{data}{
+     optional data frame with the data to fit the model 
+}
+  \item{testset}{
+     optional vector defining a test set (row indices)
+}
+  \item{tselect}{
+     string specifying the role of the test set in model selection 
+     (\code{"none"}, \code{"passive"} or \code{"active"}, see details)
 }
   \item{prep}{
      character. optional preprocessing (only one choice implemented: 
      \code{"bn"} (see details)
 }
   \item{val}{
-     character. Validation used (\code{dQuote{CV}} or \code{dQuote{LOO}}, 
+     character. Validation used (\code{"CV"} or \code{"LOO"}, 
      see details)
 }
   \item{spectral}{
      logical. If \code{TRUE}, predictors are assumed to be reflectance
-     (implications for methods used in backward selection)
+     (implications for methods used in backward selection but ignored if 
+     there are methods specified in \code{backselect})
 }
   \item{scaling}{
      logical. if \code{TRUE}, predictors are scaled by dividing each variable 
@@ -44,7 +53,18 @@ jump = NA, thorough = FALSE)
      are reported
 }
   \item{backselect}{
-     logical. If \code{TRUE}, backward selection of predictors takes place
+     one or more character strings defining the methods used in backwards 
+     selection (see details). \code{"no"} means no backselection. Defaults 
+     to \code{"auto"}
+}
+  \item{jt.thresh}{
+     threshold used in predictor selections that are based on jackknife 
+     testing (methods based on A1, see details) 
+}
+  \item{vip.thresh}{
+     threshold used in predictor selections that are based on VIP
+     (methods based on A2, see details). VIP is scaled to a maximum
+     of 1.
 }
   \item{jump}{
      numeric. If a number is given, backward selection starts with a 
@@ -52,10 +72,16 @@ jump = NA, thorough = FALSE)
      based on significance in jackknifing. The argument can be useful in the 
      case of large predictor matrices.
 }
+  \item{method}{
+     character string indicating what plsr method to use. \code{autopls}
+     works with the kernel algorithm (\code{"kernelpls"}) and with the 
+     orthogonal scores algorithm (\code{"oscorespls"})
+}
   \item{thorough}{
      logical. if \code{TRUE}, more methods of variable selection are used.
      This slows down the process and may sometimes increase the chance of 
      finding good solutions. May also end up with decreased model quality.
+     Ignored if there are methods specified in \code{backselect}
 }
 }
 \details{
@@ -65,22 +91,36 @@ jump = NA, thorough = FALSE)
   Schmidtlein et al. (2012). \code{autopls} works only for single target 
   variables.
   
+  If validation = \dQuote{CV}, 10-fold cross-validation is performed. If 
+  validation = \dQuote{LOO}, leave-one-out cross-validation is performed.
+  Test set validation takes always place if a test set has been defined. 
+  \code{tselect} specifies how the test set is used in model selection. 
+  \code{"none"}: just use it for external validation; \code{"passive"}: 
+  use error in external validation for model selection but do not use it 
+  for the determination of the number of latent vectors; \code{"active"} 
+  use the error in external validation for model selection and for the 
+  determination of the number of latent vectors. With \code{stingy = TRUE} 
+  the errors that are used in the selection are measured at a number of latent 
+  vectors that depends on the number of observations (1/10 at maximum). 
+  Otherwise, the number of latent vectors is chosen where errors approach 
+  a first minimum. In order to avoid minor local minima the error values are 
+  first smoothed.
+  
+  Large data matrices: Examine the arguments \code{jump} (forced reduction of
+  predictors in the first iteration) and \code{thorough} (reduced number of
+  methods considered for variable selection). Large model objects can be 
+  shrinked using the function \code{\link{slim}} but some functionality (like 
+  plotting or change of the number of latent vectors) is lost. Shrinked models 
+  can still be used for predictions.    
+
   Preprocessing options: The only implemented option is currently 
   \code{"bn"}, which is a brightness normalization according to 
   Feilhauer et al. (2010).  
   
-  If validation = \dQuote{CV}, 10-fold cross-validation is performed. If 
-  validation = \dQuote{LOO}, leave-one-out cross-validation is performed.
-
-  Large data matrices: Examine the arguments \code{jump} (forced reduction of
-  predictors in the first iteration) and \code{thorough} (reduced number of
-  methods considered for variable selection). With very large data sets 
-  \code{autopls} may run out of memory, especially if \code{val = "LOO"}. 
-  \code{val = "CV"} should work in most cases. Large model objects can be 
-  shrinked using the function \code{\link{slim}}.    
-
-  During backward selection, several methods for predictor selection 
-  are tested. They are coded as follows:  
+  Several methods for predictor selection are available. In default mode
+  (\code{"auto"}) the selection follows an optimization procedure (restricted by 
+  \code{spectral} and \code{thorough}). However, one or more user-defined 
+  methods can be set by \code{backselect}. The methods are coded as follows:  
   
   \emph{A) Filtering based on thresholds}
 
@@ -91,23 +131,24 @@ jump = NA, thorough = FALSE)
   
   \emph{B) Filtering followed by reduction of autocorrelation}
   
-  These are only used with \code{spectral = TRUE}: (B1) filtering based on 
-  significance, thinning starting with local maxima in weighted regression 
-  coefficients; (B2) filtering based on significance, thinning starting with 
-  local maxima in significance; (B3) filtering based on significance, thinning 
-  starting with local maxima in vip; (B4) filtering based on VIP, thinning 
-  starting with local maxima in weighted regression coefficients; 
-  (B5) filtering based on VIP, thinning starting with local maxima in 
-  significance; (B6) filtering based on VIP, thinning starting with local 
-  maxima in VIP.
+  If \code{backselect = "auto"} the following methods are only used with 
+  \code{spectral = TRUE}: (B1) filtering based on significance, thinning 
+  starting with local maxima in weighted regression coefficients; (B2) filtering 
+  based on significance, thinning starting with local maxima in significance; 
+  (B3) filtering based on significance, thinning starting with local maxima in 
+  vip; (B4) filtering based on VIP, thinning starting with local maxima in 
+  weighted regression coefficients; (B5) filtering based on VIP, thinning 
+  starting with local maxima in significance; (B6) filtering based on VIP, 
+  thinning starting with local maxima in VIP.
 
   \emph{C) Just reduction of autocorrelation}
   
   (C1): reduction starting with local maxima in regression 
   coefficients.
   
-  With \code{thorough = FALSE} A1, A2, A3, A4 and B2 are used. With 
-  \code{spectral = FALSE} only A-methods are used.
+  With \code{thorough = FALSE} and \code{backselect = "auto"} 
+  A1, A2, A3, A4 and B2 are used. With \code{spectral = FALSE} only A-methods 
+  are used.
     
 }  
 \value{
@@ -138,8 +179,11 @@ jump = NA, thorough = FALSE)
                iterations in backward selection}
   \item{X}{original predictors}
   \item{Y}{original target variable}
+  \item{X.testset}{test set: predictors}
+  \item{Y.testset}{test set: target variable}
   \item{preprocessing}{method used for preprocessing}
   \item{scaling}{\code{TRUE} if scaling was requested}
+  \item{val}{\code{LOO} or \code{CV}}
   \item{call}{the function call}
 }
 \references{
@@ -153,8 +197,8 @@ jump = NA, thorough = FALSE)
   \bold{23}: 395--604. Open Access.
 }
 \author{
-  Sebastian Schmidtlein with contributions from Carsten Oldenburg and 
-  Hannes Feilhauer. A code snipped for computing \code{VIP} is borrowed from 
+  Sebastian Schmidtlein with substantial contributions from Carsten Oldenburg 
+  and Hannes Feilhauer. The code for computing \code{VIP} is borrowed from 
   Bjørn-Helge Mevik.
 }
 
@@ -164,11 +208,11 @@ jump = NA, thorough = FALSE)
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
+  data (murnau.X)
+  data (murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y, murnau.X)
+  model <- autopls (murnau.Y ~ murnau.X)
   
   ## Plot
   \dontrun{plot (model)}

@@ -62,7 +62,7 @@ metaval <- function (object, method, estimate, ic)
 
 repCV <- function (object, k = 10)
 {
-  pred <- object$model$subX
+  pred <- object$model$X
   targ <- object$model$Y
   scaling <- object$metapls$scaling
   method <- object$method
@@ -98,3 +98,4 @@ repCV <- function (object, k = 10)
   
   invisible (result)     
 }
+

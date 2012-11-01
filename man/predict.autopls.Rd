@@ -23,7 +23,8 @@
 }
 \details{
   Elements, columns or layers must have the same number and order as the input 
-  predictors for \code{autopls}. In case of large image files the function
+  predictors for \code{autopls}. The predictors resulting from autopls are 
+  selected silently. In case of large image files the function
   is based on tile processing.  
 }
 \value{
@@ -37,11 +38,11 @@
 }
 \examples{
   ## load predictor and response data to the current environment
-  data(murnau.X)
-  data(murnau.Y)
+  data (murnau.X)
+  data (murnau.Y)
   
   ## call autopls with the standard options
-  model<-autopls(murnau.Y,murnau.X)
+  model<-autopls (murnau.Y ~ murnau.X)
 
   ## new data
   new <- murnau.X + 500 
