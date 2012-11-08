@@ -8,13 +8,13 @@
   \code{predict.autopls}
 }
 \usage{
-  prepro(X, prep = 'bn')
+  prepro(X, method = 'bn')
 }
 \arguments{
   \item{X}{
   predictors as vector, matrix, raster brick or raster stack
 }
-  \item{prep}{
+  \item{method}{
   type of preprocessing (currently only brightness normalization coded as
   \dQuote{bn})
 }

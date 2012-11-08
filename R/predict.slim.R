@@ -13,9 +13,6 @@ predict.slim <- function (object, dat, ...)
   if (class (dat) == 'RasterBrick') method <- 'rst'
   if (class (dat) == 'RasterStack') method <- 'rst'
 
-  ## Preprocessing
-  bn <- ifelse (!is.na (prep) & prep == 'bn', TRUE, FALSE)
-
   ## Coefficients
   cfs <- as.vector (coef (object, intercept = TRUE))
   cf <- cfs [-1]
@@ -31,7 +28,7 @@ predict.slim <- function (object, dat, ...)
     dat <- dat [subs]
 
     ## Apply appropriate preprocessing calling function prepro
-    if (bn) dat <- prepro (dat, 'bn')
+    if (prep != 'none') dat <- prepro (dat, method = 'bn')
 
     ## Apply regression equation
     cfdat <- dat * cf
@@ -46,7 +43,7 @@ predict.slim <- function (object, dat, ...)
     newX <- dat [,subs]
 
     ## Apply appropriate preprocessing calling function prepro
-    if (bn) newX <- prepro (newX, 'bn')
+    if (prep != 'none') newX <- prepro (newX, method = 'bn')
 
     ## Apply regression equation
     cfdat <- t (newX) * cf
@@ -70,7 +67,7 @@ predict.slim <- function (object, dat, ...)
 
     ## make tiles if tile processing seems to be usefull
     maxsize <- 500000    
-    if (bn) maxsize <- 50000
+    if ('bn' %in% prep) maxsize <- 50000
     dims <- dim (dat)
 
     if (prod (dims) > maxsize)
@@ -91,7 +88,7 @@ predict.slim <- function (object, dat, ...)
         v <- getValuesBlock (dat, row = lower [i], 
           nrows = (upper [i] - lower [i] + 1))             
         ## Preprocessing if appropriate
-        if (bn) v <- prepro (v, prep = 'bn')       
+        if (prep != 'none') v <- prepro (v, method = 'bn')       
         cfdat <- sweep (v, 2, cf, '*')
         res <- c(res, rowSums (cfdat) + ic)        
         if (prog) setTxtProgressBar (pb, upper [i])
@@ -105,7 +102,7 @@ predict.slim <- function (object, dat, ...)
     {  
       ## without tile processing
       ## Preprocessing if appropriate
-      if (bn) dat <- prepro (dat, prep = 'bn')       
+      if (prep != 'none') dat <- prepro (dat, method = 'bn')       
       cfdat <- dat * cf
       prediction <- stackApply (cfdat, rep (1, sum (subs)), sum) + ic
     }

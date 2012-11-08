@@ -8,10 +8,10 @@ autopls
 Partial least squares regression with backward selection of predictors
 }
 \usage{
-autopls (formula, data, testset = NULL, tselect = 'none', prep = NA, 
+autopls (formula, data, testset = NULL, tselect = "none", prep = "none", 
   val = "LOO", spectral = TRUE, scaling = TRUE, stingy = TRUE, 
-  verbose = TRUE, backselect = 'auto', jt.thresh = 0.1, vip.thresh = 0.2, 
-  jump = NA, method = 'kernelpls', thorough = FALSE)
+  verbose = TRUE, backselect = "auto", jt.thresh = 0.1, vip.thresh = 0.2, 
+  jump = NA, method = "kernelpls")
 }
 \arguments{
   \item{formula}{
@@ -68,20 +68,14 @@ autopls (formula, data, testset = NULL, tselect = 'none', prep = NA,
 }
   \item{jump}{
      numeric. If a number is given, backward selection starts with a 
-     forced reduction of predictors to the given number. This reduction is 
-     based on significance in jackknifing. The argument can be useful in the 
-     case of large predictor matrices.
+     forced reduction of predictors to the given number (see A0 in details). 
+     This reduction is based on significance in jackknifing. The argument can 
+     be useful in the case of large predictor matrices.
 }
   \item{method}{
      character string indicating what plsr method to use. \code{autopls}
      works with the kernel algorithm (\code{"kernelpls"}) and with the 
      orthogonal scores algorithm (\code{"oscorespls"})
-}
-  \item{thorough}{
-     logical. if \code{TRUE}, more methods of variable selection are used.
-     This slows down the process and may sometimes increase the chance of 
-     finding good solutions. May also end up with decreased model quality.
-     Ignored if there are methods specified in \code{backselect}
 }
 }
 \details{
@@ -107,8 +101,7 @@ autopls (formula, data, testset = NULL, tselect = 'none', prep = NA,
   first smoothed.
   
   Large data matrices: Examine the arguments \code{jump} (forced reduction of
-  predictors in the first iteration) and \code{thorough} (reduced number of
-  methods considered for variable selection). Large model objects can be 
+  predictors in the first iteration). Large model objects can be 
   shrinked using the function \code{\link{slim}} but some functionality (like 
   plotting or change of the number of latent vectors) is lost. Shrinked models 
   can still be used for predictions.    
@@ -118,9 +111,11 @@ autopls (formula, data, testset = NULL, tselect = 'none', prep = NA,
   Feilhauer et al. (2010).  
   
   Several methods for predictor selection are available. In default mode
-  (\code{"auto"}) the selection follows an optimization procedure (restricted by 
-  \code{spectral} and \code{thorough}). However, one or more user-defined 
-  methods can be set by \code{backselect}. The methods are coded as follows:  
+  (\code{backselect = "auto"}) the selection follows an optimization procedure 
+  using methods A1, A2, A3, A4 and B2. \code{spectral = FALSE} restricts this 
+  selection to the A-methods. However, apart from A0 any user-defined 
+  combination can be selected using the \code{backselect} argument. 
+  The methods are coded as follows:  
   
   \emph{A) Filtering based on thresholds}
 
@@ -131,24 +126,19 @@ autopls (formula, data, testset = NULL, tselect = 'none', prep = NA,
   
   \emph{B) Filtering followed by reduction of autocorrelation}
   
-  If \code{backselect = "auto"} the following methods are only used with 
-  \code{spectral = TRUE}: (B1) filtering based on significance, thinning 
-  starting with local maxima in weighted regression coefficients; (B2) filtering 
-  based on significance, thinning starting with local maxima in significance; 
-  (B3) filtering based on significance, thinning starting with local maxima in 
-  vip; (B4) filtering based on VIP, thinning starting with local maxima in 
-  weighted regression coefficients; (B5) filtering based on VIP, thinning 
-  starting with local maxima in significance; (B6) filtering based on VIP, 
-  thinning starting with local maxima in VIP.
+  (B1) Filtering based on significance, thinning starting with local maxima 
+  in weighted regression coefficients; (B2) filtering based on significance, 
+  thinning starting with local maxima in significance; (B3) filtering based 
+  on significance, thinning starting with local maxima in vip; (B4) filtering 
+  based on VIP, thinning starting with local maxima in weighted regression 
+  coefficients; (B5) filtering based on VIP, thinning starting with local 
+  maxima in significance; (B6) filtering based on VIP, thinning starting with 
+  local maxima in VIP.
 
   \emph{C) Just reduction of autocorrelation}
   
   (C1): reduction starting with local maxima in regression 
   coefficients.
-  
-  With \code{thorough = FALSE} and \code{backselect = "auto"} 
-  A1, A2, A3, A4 and B2 are used. With \code{spectral = FALSE} only A-methods 
-  are used.
     
 }  
 \value{

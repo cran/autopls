@@ -60,41 +60,47 @@ metaval <- function (object, method, estimate, ic)
   return (res)
 }
 
-repCV <- function (object, k = 10)
+metaCV <- function (object, k = 100, segments = 4)
 {
   pred <- object$model$X
   targ <- object$model$Y
   scaling <- object$metapls$scaling
   method <- object$method
   nlv <- get.lv (object)
+  prep <- object$metapls$preprocessing
   
   ## Preprocessing if appropriate
-  prep <- object$metapls$preprocessing
-  if (!is.na (prep) & prep == 'bn') pred <- prepro (pred)
+  if (prep != 'none') pred <- prepro (pred, method = prep)  
   
-  rmsevec <- vector ()
-  r2vec <- vector ()
+  ## Prepare input
+  set <- data.frame (Y = targ, X = I (pred)) 
+  r2vec <- rmsevec <- rep (NA, k)
   
-  for (i in 1:k)
-  {
-    res <-  plsr (targ ~ pred, scale = scaling, validation = 'CV', 
-      method = method)
-    rmsevec <- c(rmsevec, RMSEP (res, nc = nlv, 'CV', intercept = FALSE)$val)
-    r2vec <- c(r2vec, R2 (res, nc = nlv, 'CV', intercept = FALSE)$val)
+  for (i in 1:k) ## Outer loop
+  {    
+    mod <-  plsr (Y ~ X, data = set, scale = scaling, method = method, 
+      validation = 'CV', segments = segments, ncomp = nlv)    
+    r2vec [i] <- R2 (mod, estimate = 'CV', nc = nlv, intercept = FALSE)$val
+    rmsevec [i] <- RMSEP (mod, estimate = 'CV', nc = nlv, intercept = FALSE)$val
   }
   
-  result <- list (
-    call = sys.call (),
-    R2.mean = mean (r2vec),
-    R2.sd = sd (r2vec),
-    RMSE.mean = mean (rmsevec),
-    RMSE.sd = sd (rmsevec))
+  result <- list (call      = sys.call (),
+                  R2.mean   = mean (r2vec),
+                  R2.sd     = sd (r2vec),
+                  RMSE.mean = mean (rmsevec),
+                  RMSE.sd   = sd (rmsevec),
+                  RMSE      = rmsevec,
+                  R2        = r2vec)
   
   ## Screen output
-  cat (paste ('mean R2 in', k, 'runs of CV:', format (mean (r2vec), digits = 3)))
-  cat (paste (' (sd: ', format (sd (r2vec), digits = 3), ')\n', sep = ''))
-  cat (paste ('mean RMSE in', k, 'runs of CV:', format (mean (rmsevec), digits = 3)))
-  cat (paste (' (sd: ', format (sd (rmsevec), digits = 3), ')  \n', sep = ''))
+  cat (paste ('mean R2 in ', k, ' runs of ', segments, '-fold CV: ', 
+    format (mean (r2vec), digits = 3), sep = ''))
+  cat (paste (' (sd: ', 
+    format (sd (r2vec), digits = 3), ')\n', sep = ''))
+  cat (paste ('mean RMSE in ', k, ' runs of ', segments, '-fold CV: ', 
+    format (mean (rmsevec), digits = 3), sep = ''))
+  cat (paste (' (sd: ', 
+    format (sd (rmsevec), digits = 3), ')  \n', sep = ''))
   
   invisible (result)     
 }

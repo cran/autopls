@@ -3,15 +3,14 @@
 summary.autopls <- function (object, ...)
 {
 
-  test <- ifelse (is.null (object$metapls$X.testset), FALSE, TRUE)
-  bn <- ifelse (is.na (object$metapls$preprocessing), FALSE, TRUE)
-
   # Get parameters
   iter <- object$metapls$current.iter
   lv <- get.lv (object)
   N <- length (object$metapls$Y)
   pred <- sum (object$predictors) 
   val <- object$metapls$val
+  prep <- object$metapls$preprocessing
+  test <- ifelse (is.null (object$metapls$X.testset), FALSE, TRUE)
   
   if (!test) 
   {
@@ -24,7 +23,7 @@ summary.autopls <- function (object, ...)
   {
     sXt <- object$metapls$X.testset [,object$predictors]
     Yt <- object$metapls$Y.testset
-    if (bn) sXt <- sXt / sqrt (rowSums (sXt ^ 2))
+    if (prep != 'none') sXt <- prepro (sXt, method = 'bn')
     sYX <- data.frame (Y = Yt, X = I (sXt))
     r2.all <- unlist (R2 (object, c('train', 'CV', 'test'), 
       nc = lv, ic = FALSE, newdata = sYX))  

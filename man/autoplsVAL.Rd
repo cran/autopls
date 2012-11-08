@@ -5,7 +5,7 @@
 \alias{RMSEP.autopls}
 \alias{jack.test.autopls}
 \alias{metaval}
-\alias{repCV}
+\alias{metaCV}
 \title{
   Validate a fitted autopls model
 }
@@ -19,7 +19,7 @@
   \method{RMSEP}{autopls}(object, estimate, nc = 'inherit', ic = FALSE, \dots)
   jack.test.autopls (object, nc = 'inherit')
   metaval (object, method, estimate, ic)
-  repCV (object, k = 10)
+  metaCV (object, k = 100, segments = 4)
 }
 \arguments{
   \item{object}{object of class \code{autopls}}
@@ -33,7 +33,8 @@
     the respective number of latent vectors.}
   \item{ic}{logical. Specifies whether estimates for a model with zero 
     components should be returned}
-  \item{k}{number of cross-validations used in \code{repCV}}  
+  \item{k}{number of cross-validations used in \code{metaCV}}  
+  \item{segments}{number of cross-validation segments used in \code{metaCV}}
   \item{\dots}{Arguments to be passed to methods}
 }
 \details{
@@ -42,7 +43,7 @@
   More details are given here: \code{\link[pls:mvrVal]{mvrVal}}, 
   \code{\link[pls:jack.test]{jack.test}}. Other functions are specific 
   \code{autopls} functions. \code{metaval} is used for a summary of validation
-  results during backselection. \code{repCV} is a meta cross-validation 
+  results during backselection. \code{metaCV} is a meta cross-validation 
   (repeated ten-fold cross-validation).
 }
 \value{
@@ -53,7 +54,7 @@
   
   The \code{metaval} function provides a matrix overview of model results for
   all iterations and numbers of latent vectors in an \code{autopls} object.
-  \code{repCV} provides basic summary statistics for repeated ten-fold
+  \code{metaCV} provides results and basic statistics for repeated 
   cross-validation runs.
 }
 \author{
@@ -86,7 +87,7 @@
   jack.test.autopls (model)
   
   ## Meta cross-validation
-  repCV (model)
+  metaCV (model)
 }
 \keyword{regression}
 \keyword{multivariate}

@@ -1,7 +1,7 @@
 autopls <- function (formula, data, testset = NULL, tselect = 'none', 
-  prep = NA, val = "LOO", spectral = TRUE, scaling = TRUE, 
+  prep = 'none', val = "LOO", spectral = TRUE, scaling = TRUE, 
   stingy = TRUE, verbose = TRUE, backselect = 'auto', jt.thresh = 0.1,
-  vip.thresh = 0.2, jump = NA, method = 'kernelpls', thorough = FALSE)
+  vip.thresh = 0.2, jump = NA, method = 'kernelpls')
 {
 
   # Get the data matrices
@@ -18,7 +18,8 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
   # Match arguments
   method <- match.arg (method, c('kernelpls', 'oscorespls'))
   tselect <- match.arg (tselect, c('none', 'active', 'passive'))
-  val <- match.arg (val, c('LOO', 'CV'))
+  val <- match.arg (val, c('LOO', 'CV'), several.ok = TRUE)
+  prep <- match.arg (prep, c('none', 'bn', 'msc'))
   bsl <- match.arg (backselect, c('auto', 'no', 'A1', 'A2', 'A3', 
                     'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 
                     'C1'), several.ok = TRUE)
@@ -49,50 +50,53 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
   # Determine number of latent vectors where RMSEval minimizes (nlv)
   getbest <- function (v)
   {
-    cnsv <- 0.03 # 'punish factor'
-    # Truncate RMSE to a max. of 20 LV
-    if (length (v) > 20) v <- v [1:20]
+
+    # Truncate RMSE to a max. of 30 LV
+    if (length (v) > 30) v <- v [1:30]
     # If RMSE are long enough: filter
     if (length (v) > 4)
     {
-      # Filter for smoothing
-      flt <- c(1, 2, 1)
+      criterion <- 0.03 * (max (v [1:4]) - min (v))
       # Low-pass filter (avoiding conflicts with package signal)
-      lp <- stats::filter (v, flt)
+      lp <- stats::filter (v, c(1, 2, 1))
       # Slope
       slope <- lp [2:length (lp)] - lp [1:(length (lp) - 1)]      
-      criterion <- cnsv * (max (v) - min (v))
-      # if error decreases (almost) monotonically (tolerance: in the range
-      # of the criterion) simply cut values
+      # if error decreases (almost) monotonically 
       if (max (slope, na.rm = TRUE) < criterion)
       {
         logic <- v > min (v) + criterion
-        nlv <- match (FALSE, logic)
+        aopt <- match (FALSE, logic)
       }  
       # if error has a minimum
       else
       {
         # First minimum
-        dlp <- diff (lp)
-        minflt <- match (FALSE, dlp < 0)
+        minflt <- match (FALSE, diff (lp) < 0)
         # Step back until 'punish factor' is met if there is any backw. increase
         act <- v > (v [minflt] + criterion)
         # Last value BELOW threshold before minflt
         if (sum (act [1:minflt]) > 0) 
-          nlv <- minflt - match (TRUE, act [minflt:1]) + 2
+          aopt <- minflt - match (TRUE, act [minflt:1]) + 2
         # If no backward increase take minfilt
-        else nlv <- minflt
+        else aopt <- minflt
       }
     }
     # if rmse is too short for filtering
     else
     {
-      criterion <- cnsv * (max (v) - min (v))
+      criterion <- 0.03 * (max (v) - min (v))
       dif <- v [2:length (v)] + criterion - v [1:length (v) - 1]
-      if (length (dif) == 1 & dif [1] < 0) nlv <- 2
-      else nlv <- match (FALSE, dif < 0)
+      if (length (dif) == 1 & dif [1] < 0) aopt <- 2
+      else aopt <- match (FALSE, dif < 0)
     }
-    return (nlv)
+
+    
+  #  plot (1:20, v[1:20], "l")
+  #  lines (x = c(aopt, aopt), y = c(0,1))
+  #  points (aopt, v [aopt], pch = 19)
+  #  Sys.sleep (0.5)
+
+    return (aopt)
   }
 
   # Validation to be run in function tryaround
@@ -102,8 +106,8 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     # Reduce the original data according to the selection
     Xchk <- cleanX [,selcode == 1]
     
-    # Prepare for plsr
-    if (!is.na (prep)) prepro (Xchk, prep = prep)
+    # Optional preprocessing
+    if (prep != 'none') Xchk <- prepro (Xchk, method = prep)
 
     YXchk <- data.frame (Y = Y, X = I (Xchk))            
     
@@ -122,7 +126,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     {  
       # Prepare test set
       Xchkt <- cleantestX [,selcode == 1]
-      if (!is.na (prep)) prepro (Xchkt, prep = prep)
+      if (prep != 'none') Xchkt <- prepro (Xchkt, method = prep)
       cdv <- data.frame (Y = Yt, X = I (Xchkt))      
     
       # Derive nlv from test set results if tselect is 'active'      
@@ -320,21 +324,10 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       if (!'auto' %in% bsl) selmat <- buildselmat (bsl)
       else
       {
-        if (!thorough)
-        {
-          if (spectral)
-            selmat <- buildselmat (c('A1','A2','A3','A4','B2'))
-          else
-            selmat <- buildselmat (c('A1','A2','A3','A4'))
-        }
+        if (spectral)
+          selmat <- buildselmat (c('A1','A2','A3','A4','B2'))
         else
-        { 
-          if (spectral)
-            selmat <- buildselmat (c('A1','A2','A3','A4','A5','B1',
-              'B2','B3','B4','B5','B6','C1'))
-          else  
-            selmat <- buildselmat (c('A1','A2','A3','A4','A5'))
-        }
+          selmat <- buildselmat (c('A1','A2','A3','A4'))
       }
       compn <- rownames (selmat)
 
@@ -421,6 +414,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       }
       # Case of no usefull solution
       else result <- NULL
+      
     }
     return (result)
   }
@@ -484,7 +478,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     # --- Data preparation ------------------------------------------------  #
 
     # X preprocessing
-    if (!is.na (prep)) prepro (sX, prep = prep) 
+    if (prep != 'none') sX <- prepro (sX, method = prep) 
     # Build the dataframe
     sYX <- data.frame (Y = Y, X = I (sX))
     
@@ -510,7 +504,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     else # Test set present
     {                                                          
       # Build test set data and call methods for class mvr      
-      if (!is.na (prep)) prepro (sXt, prep = prep)
+      if (prep != 'none') sXt <- prepro (sXt, method = prep)
       valdat <- data.frame (Y = Yt, X = I (sXt))
       rmse <- RMSEP (model, estimate = c('train', 'CV', 'test'), 
         newdata = valdat, intercept = FALSE) $val [1:3,,]
@@ -530,8 +524,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     }
     
     reg.coef <- as.vector (coef (model, ncomp = nlv))
-    jt <- as.vector (suppressWarnings (jack.test 
-      (model, ncomp = nlv)$pvalues))
+    jt <- as.vector (suppressWarnings (jack.test (model, ncomp = nlv) $pvalues))
     vip <- VIP (model) [nlv,]
     # Rescale VIP
     vip <- (vip - min (vip)) / max (vip - min (vip))
