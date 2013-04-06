@@ -11,7 +11,7 @@ Partial least squares regression with backward selection of predictors
 autopls (formula, data, testset = NULL, tselect = "none", prep = "none", 
   val = "LOO", spectral = TRUE, scaling = TRUE, stingy = TRUE, 
   verbose = TRUE, backselect = "auto", jt.thresh = 0.1, vip.thresh = 0.2, 
-  jump = NA, method = "kernelpls")
+  jump = NA, lower = NA, method = "kernelpls")
 }
 \arguments{
   \item{formula}{
@@ -71,6 +71,12 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
      forced reduction of predictors to the given number (see A0 in details). 
      This reduction is based on significance in jackknifing. The argument can 
      be useful in the case of large predictor matrices.
+}
+  \item{lower}{
+     numeric. Backward selection proceeds as long as R2 in validation reaches 
+     the given value (experimental, backward selection continues further if
+     models improve in other respects such as decreasing numbers of latent 
+     vectors).     
 }
   \item{method}{
      character string indicating what plsr method to use. \code{autopls}

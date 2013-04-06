@@ -1,7 +1,7 @@
-45fdd3743fb4c0a5b503293c9491d01d *DESCRIPTION
+0cd2d727dc742c8f9ef9f3c017ac9e8c *DESCRIPTION
 e15e74ca33c569d899cc3645dea8c2b9 *NAMESPACE
-c1092eb9da82d73b2f4de2149ebce71b *R/autopls.R
-c9eaacd07dce367a31b20239b1909051 *R/autoplsVAL.R
+0af9c0fb4dcee0323204d8fd9dc196c8 *R/autopls.R
+f759cfb2e40966dd522f34276a6bb48b *R/autoplsVAL.R
 ef5353249731d9a3e609bbff87ba52a0 *R/extract.autopls.R
 408c17a008c89eef0ed288a40d29a7b3 *R/plot.autopls.R
 ec81f484fd90c9af41d0cf9632fa383e *R/postprocessing.R
@@ -18,7 +18,7 @@ c8e979e90df4d8f74893bef3cc401211 *R/summaries.R
 09f2d9b763b0635778be71966bf41047 *data/murnau.Y.rda
 d22c2ce83f334f150fdce1abc36a3045 *inst/CITATION
 637623e878b02d7651084f3c808fb418 *inst/THANKS
-ec14ad1f7b541b0de83f011b0202f0e2 *man/autopls.Rd
+bada73b6f41196741ff0a211cbbb2771 *man/autopls.Rd
 a92cb07587308b392d211ef7e8d5b4ee *man/autoplsVAL.Rd
 28b95cf461a5006530be8ae4f3a1c8aa *man/extract.autopls.Rd
 915ab83b147aa9dbc16ddb579141c5fb *man/murnau.X.Rd

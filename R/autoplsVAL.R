@@ -105,3 +105,29 @@ repeatedCV <- function (object, k = 100, segments = 4)
   invisible (result)     
 }
 
+guidedCV <- function (object, valist)
+{
+  pred <- object$model$X
+  targ <- object$model$Y
+  scaling <- object$metapls$scaling
+  method <- object$method
+  nlv <- get.lv (object)
+  prep <- object$metapls$preprocessing
+  
+  ## Preprocessing if appropriate
+  if (prep != 'none') pred <- prepro (pred, method = prep)  
+  
+  ## Prepare input
+  set <- data.frame (Y = targ, X = I (pred)) 
+  
+  mod <- plsr (targ ~ pred, ncomp = nlv, method = method, scale = scaling, 
+    validation = 'CV', segments = valist)
+  
+  r2 <- R2 (mod, estimate = 'CV', nc = nlv, intercept = FALSE)$val
+  rmse <- RMSEP (mod, estimate = 'CV', nc = nlv, intercept = FALSE)$val
+  
+  res <- unlist (c(r2, rmse))
+  names (res) <- c("R2val","RMSEval")
+    
+  return (res)     
+}

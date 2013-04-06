@@ -1,7 +1,7 @@
 autopls <- function (formula, data, testset = NULL, tselect = 'none', 
   prep = 'none', val = "LOO", spectral = TRUE, scaling = TRUE, 
   stingy = TRUE, verbose = TRUE, backselect = 'auto', jt.thresh = 0.1,
-  vip.thresh = 0.2, jump = NA, method = 'kernelpls')
+  vip.thresh = 0.2, jump = NA, lower = NA, method = 'kernelpls')
 {
 
   # Get the data matrices
@@ -709,14 +709,17 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
         
         # Continue if the r2 in the last model is not worse than "limit"
         # In case of tselect != 'none', this refers to the test set validation
+        
         if (tselect != 'none') 
         {
-          limit <- max (metar2 [4,]) - 0.05 # in test set
+          if (!is.na (lower)) limit <- lower 
+          else limit <- max (metar2 [4,]) - 0.05 # in test set
           if (limit > 0 & metar2 [4,lth] > limit) loop <- TRUE
         }  
         else 
         {
-          limit <- max (metar2 [2,]) - 0.05 # in CV
+          if (!is.na (lower)) limit <- lower 
+          else limit <- max (metar2 [2,]) - 0.05 # in CV
           if (limit > 0 & metar2 [2,lth] > limit) loop <- TRUE
         }
         # Continue also if the nlv decreases    
@@ -834,8 +837,8 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       #     a new autopls object based on another iteration.
       
       # Get "best" model and put it in part 1
-      if (scaling) part1 <- tmp [[7 + best]][-c(21:23,25)]      
-      else part1 <- tmp [[7 + best]][-c(20:22,24)]      
+      part1 <- tmp [[7 + best]][!as.logical(match(names(tmp [[7 + best]]),
+          c("RMSE", "R2", "nlv", "selection"),0))]
       
       # Construct part 2 ($metapls)  
       part2 <- list (current.iter  = best,
@@ -863,13 +866,13 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       
       # Get data for part 3 ($iterations)
       part3 <- tmp [8:length(tmp)]
-
+      
       # In order to save memory, remove original data from all iterations
       # This can be reconstructed using $X and $Y ($metapls) and $predictors
       for (i in 1:length(part3))
       { 
-        if (scaling) part3 [[i]] <- part3 [[i]] [-c(21:23,25)]
-        else  part3 [[i]] <- part3 [[i]] [-c(20:22,24)]
+        part3 [[i]] <- part3 [[i]] [!as.logical (match (names 
+          (tmp [[7 + best]]), c("RMSE", "R2", "nlv", "selection"),0))]
         part3 [[i]] $model$Y <- NULL
         part3 [[i]] $model$sX <- NULL
       }
