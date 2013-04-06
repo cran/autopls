@@ -1,4 +1,4 @@
-uncertainty <- function (object, prediction)
+liability <- function (object, prediction)
 {
 
   ## Determine method
@@ -32,15 +32,19 @@ uncertainty <- function (object, prediction)
   return (dif)
 }
 
-cleanup <- function (object, prediction, tolerance)
+confine <- function (object, prediction, tolerance)
 {
   
-  dif <- uncertainty (object = object, prediction = prediction)
+  dif <- liability (object = object, prediction = prediction)
 
   idx <- dif <= tolerance
   
   if (is.vector (dif)) prediction [!idx] <- NA
-  if (class (dif) == 'RasterLayer') prediction <- idx * prediction
+  if (class (dif) == 'RasterLayer') 
+  {
+    idx [idx == 0] <- NA
+    prediction <- mask (prediction, idx)
+  }
     
   return (prediction)
 } 

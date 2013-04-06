@@ -60,7 +60,7 @@ metaval <- function (object, method, estimate, ic)
   return (res)
 }
 
-metaCV <- function (object, k = 100, segments = 4)
+repeatedCV <- function (object, k = 100, segments = 4)
 {
   pred <- object$model$X
   targ <- object$model$Y

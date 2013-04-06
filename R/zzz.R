@@ -1,5 +1,6 @@
-.onLoad <- function(lib, pkg)
+.onAttach <- function(lib, pkg)
 {
 	pkg.info <- utils::packageDescription('autopls')
-	packageStartupMessage(paste("autopls", pkg.info[["Version"]]))
+	packageStartupMessage ('autopls ', utils::packageDescription ('autopls',
+                          field= "Version"), appendLF = TRUE)
 }

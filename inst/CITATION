@@ -10,11 +10,12 @@ bibentry (
   journal = "Journal of Vegetation Science",
   url = "http://dx.doi.org/10.1111/j.1654-1103.2011.01370.x",
   doi = "10.1111/j.1654-1103.2011.01370.x",
-  pages = "n/a--n/a",
-  year = "early view",
+  pages = "365--405",
+  year = "2012",
+  volume = 23,
   textVersion = paste ("Schmidtlein, S, Feilhauer, H., Bruelheide, H. (2012)",
                        ": Mapping plant strategy types using remote sensing. ",
-                       "Journal of Vegetation Science (early view). url = ",
+                       "Journal of Vegetation Science 26: 395-405. url = ",
                        "http://dx.doi.org/10.1111/j.1654-1103.2011.01370.x", 
                        sep = "")
 )

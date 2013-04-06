@@ -184,10 +184,10 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
 
   Schmidtlein, S., Feilhauer, H., Bruelheide, H. (2012): Mapping plant
   strategy types using remote sensing. \emph{Journal of Vegetation Science}
-  \bold{23}: 395--604. Open Access.
+  \bold{23}: 395--405. Open Access.
 }
 \author{
-  Sebastian Schmidtlein with substantial contributions from Carsten Oldenburg 
+  Sebastian Schmidtlein with contributions from Carsten Oldenburg 
   and Hannes Feilhauer. The code for computing \code{VIP} is borrowed from 
   Bjørn-Helge Mevik.
 }

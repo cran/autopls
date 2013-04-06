@@ -331,7 +331,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       }
       compn <- rownames (selmat)
 
-      # Remove solutions with less than two remaining vars or without reduction
+      # Remove solutions with < 2 remaining vars or without variable reduction
       sums <- rowSums (selmat)
       use <- (sums != ncol (selmat)) == (sums > 1)            
       selmat <- selmat [use,]      
@@ -351,7 +351,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
           comps <- checkmat [2]    
           # errors at minimum
           errors.min <- checkmat [3]
-          result <- list (selmat, names (use) [use])        
+          result <- list (selmat, names (use) [use], errors.min)        
         }
         else 
         {
@@ -384,7 +384,6 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
           # errors at minimum
           errors.min <- checkmat [,3]
           
-          
           if (stingy)
           {
             # Scale errors
@@ -408,13 +407,12 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
             comps [!these] <- 9999
             thisone <- which.min (comps)
           }        
-          
-          result <- list (selmat [thisone,], compn [thisone])
-        }    
+          result <- list (selmat [thisone,], compn [thisone], 
+            errors.min [thisone])
+        }            
       }
-      # Case of no usefull solution
-      else result <- NULL
-      
+      # Case of no useful solution
+      else result <- NULL      
     }
     return (result)
   }
@@ -445,8 +443,9 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
 
   counter <- 1
   loop <- TRUE
-
-  while (loop == TRUE)
+  onemoreloop <- FALSE
+  
+  while (loop == TRUE | onemoreloop == TRUE)
   {
 
     # --- Variables from previous run and update of X ---------------------- #
@@ -564,7 +563,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
 
     selcode <- NA
 
-    if (backselect)
+    if (backselect & !onemoreloop)
     {
       res <- tryaround ()
       if (!is.null (res)) selcode <- unlist (res [[1]])    
@@ -577,7 +576,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
       new.selection [prev.selection == TRUE] <- selcode
       selcode <- new.selection
     }
-
+    
     # --- Result object ---------------------------------------------------- #
 
     # --- Construct tables of RMSE, R2 and a vector of nlv
@@ -653,7 +652,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
 
     if (counter == 1)
     {
-      # First add information about the best model (future 'metapls' object)
+      # Collect information about the models (future 'metapls' object)
       tmp <- list ('preprocessing' = prep,       # [[1]]
                    'scaling'       = scaling,    # [[2]]
                    'RMSE'          = NA,         # [[3]]
@@ -664,7 +663,6 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
 
       predictors <- rep (TRUE, ncol (sX)) # All predictors have been used
       names (metanlv) [1] <- 'iter.1'
-
     }
     else predictors <- prev.selection
 
@@ -695,38 +693,67 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     # Element [[5]]: Predictor selection for next run
     tmp [[index]][[lth + 5]] <- selcode
     names (tmp [[index]])[lth + 5] <- 'selection'
-
-    # Continue?
-    if (counter > 1)
-    {
-      lth <- ncol (metar2)      
-      loop <- FALSE
-      
-      # Continue if the r2 in the last model is not worse than "limit"
-      # In case of tselect != 'none', this refers to the test set validation
-      if (tselect != 'none') 
-      {
-        limit <- max (metar2 [4,]) - 0.05 # in test set
-        if (limit > 0 & metar2 [4,lth] > limit) loop <- TRUE
-      }  
-      else 
-      {
-        limit <- max (metar2 [2,]) - 0.05 # in CV
-        if (limit > 0 & metar2 [2,lth] > limit) loop <- TRUE
-      }
-      # Continue also if the nlv decreases    
-      if (metanlv [lth] < metanlv [lth - 1]) loop <- TRUE
-    }
-
-    # exit if backselect = 'no'
-    if (!backselect) loop <- FALSE
     
-    # exit if less than 10 predictors have been selected
-    else if (sum (selcode) < 10) loop <- FALSE
-
-    # Final action in case of no return
-    if (loop == FALSE)
+    # Continue?
+    if (onemoreloop) 
     {
+      loop <- FALSE
+      onemoreloop <- FALSE
+    }  
+    else
+    {
+      if (counter > 1)
+      {
+        lth <- ncol (metar2)      
+        loop <- FALSE
+        
+        # Continue if the r2 in the last model is not worse than "limit"
+        # In case of tselect != 'none', this refers to the test set validation
+        if (tselect != 'none') 
+        {
+          limit <- max (metar2 [4,]) - 0.05 # in test set
+          if (limit > 0 & metar2 [4,lth] > limit) loop <- TRUE
+        }  
+        else 
+        {
+          limit <- max (metar2 [2,]) - 0.05 # in CV
+          if (limit > 0 & metar2 [2,lth] > limit) loop <- TRUE
+        }
+        # Continue also if the nlv decreases    
+        if (metanlv [lth] < metanlv [lth - 1]) loop <- TRUE
+      }
+
+      # exit if backselect = 'no'
+      if (!backselect) loop <- FALSE
+      
+      # action if less than 10 predictors have been selected
+      else if (sum (selcode) < 10) loop <- FALSE
+          
+      # Now, if loop == F and one of the tested models performed 
+      # better than previous models one more loop should take place but without 
+      # further backwards selection.
+      
+      if (backselect & loop == FALSE)
+      {
+        if (tselect != 'none') 
+        {
+          if (counter > 1) limit <- max (metarmse [4,]) # in test set
+          else  limit <- max (metarmse [4])
+          if (limit > 0 & res [[3]] < limit) onemoreloop <- TRUE
+        }  
+        else 
+        {
+          if (counter > 1) limit <- max (metarmse [2,]) # in CV
+          else limit <- max (metarmse [2]) # in CV        
+          if (limit > 0 & res [[3]] < limit) onemoreloop <- TRUE
+        }
+      }
+    }
+    
+    # Final action in case of no return
+    if (loop == FALSE & onemoreloop == FALSE)
+    {      
+      
       # Parameters relating to the best model
       # Case of no selection but backselect == TRUE or numeric
       if (counter == 1)
@@ -738,7 +765,6 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
         tmp [[4]] <- metar2                               # R2
         tmp [[3]] <- metarmse                             # RMSE
       }
-      
       # Case of prev. selection and backselect == TRUE or numeric
       else
       {

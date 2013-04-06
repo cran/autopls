@@ -1,19 +1,19 @@
 ## Exported functions:
 export(
        autopls,
-       cleanup,
+       confine,
        get.iter,
        get.lv,
        jack.test.autopls,
-       metaCV,
+       liability,
        metaval,
        predicted,
        prepro,
+       repeatedCV,
        reset,
        set.iter,
        set.lv,
-       slim,
-       uncertainty
+       slim
        )
 
 ## Imports:

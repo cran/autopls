@@ -1,7 +1,7 @@
 \name{postprocessing}
 \alias{postprocessing}
-\alias{uncertainty}
-\alias{cleanup}
+\alias{liability}
+\alias{confine}
 \title{
   Test for model extrapolations or interpolations and removal of bold 
   predictions in autopls
@@ -11,8 +11,8 @@
   space and removal of exceedingly extrapolated predictions.
 }
 \usage{
-  uncertainty (object, prediction)
-  cleanup (object, prediction, tolerance)
+  liability (object, prediction)
+  confine (object, prediction, tolerance)
 }
 \arguments{
   \item{object}{
@@ -31,8 +31,8 @@
 }
 \value{
   Vector or raster image depending on the type of \code{prediction}
-  Uncertainties (\code{uncertainty} function) are given in original units. 
-  After \code{cleanup}, values exceeding \code{tolerance} are replaced by 
+  Uncertainties (\code{liability} function) are given in original units. 
+  After \code{confine}, values exceeding \code{tolerance} are replaced by 
   \code{NA}.
 }
 \author{
@@ -56,10 +56,10 @@
   pred <- predict (model, new)
 
   ## check uncertainty
-  uncertainty (model, pred)
+  liability (model, pred)
 
   ## remove predictions with uncertainty value > 5
-  cleanup (model, pred, 5)
+  confine (model, pred, 5)
 }
 \keyword{regression}
 \keyword{multivariate}
