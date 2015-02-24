@@ -43,7 +43,7 @@ confine <- function (object, prediction, tolerance)
   if (class (dif) == 'RasterLayer') 
   {
     idx [idx == 0] <- NA
-    prediction <- mask (prediction, idx)
+    prediction <- raster::mask (prediction, idx)
   }
     
   return (prediction)

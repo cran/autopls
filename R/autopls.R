@@ -1,7 +1,7 @@
 autopls <- function (formula, data, testset = NULL, tselect = 'none', 
-  prep = 'none', val = "LOO", spectral = TRUE, scaling = TRUE, 
-  stingy = TRUE, verbose = TRUE, backselect = 'auto', jt.thresh = 0.1,
-  vip.thresh = 0.2, jump = NA, lower = NA, method = 'kernelpls')
+  prep = 'none', val = "LOO", scaling = TRUE, stingy = TRUE, 
+  verbose = TRUE, backselect = 'auto', jt.thresh = 0.1,
+  vip.thresh = 0.2, jump = NA, lower = NA, method = 'oscorespls')
 {
 
   # Get the data matrices
@@ -91,11 +91,6 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     }
 
     
-  #  plot (1:20, v[1:20], "l")
-  #  lines (x = c(aopt, aopt), y = c(0,1))
-  #  points (aopt, v [aopt], pch = 19)
-  #  Sys.sleep (0.5)
-
     return (aopt)
   }
 
@@ -322,13 +317,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
     else
     { 
       if (!'auto' %in% bsl) selmat <- buildselmat (bsl)
-      else
-      {
-        if (spectral)
-          selmat <- buildselmat (c('A1','A2','A3','A4','B2'))
-        else
-          selmat <- buildselmat (c('A1','A2','A3','A4'))
-      }
+      else selmat <- buildselmat (c('A1','A4'))
       compn <- rownames (selmat)
 
       # Remove solutions with < 2 remaining vars or without variable reduction
@@ -419,7 +408,7 @@ autopls <- function (formula, data, testset = NULL, tselect = 'none',
 
   # VIP.R: Implementation of VIP (variable importance in projection)(*) for the
   # `pls' package.
-  # Copyright © 2006,2007 Bjørn-Helge Mevik
+  # Copyright 2006,2007 Bjorn-Helge Mevik
   # This program is free software; you can redistribute it and/or modify
   # it under the terms of the GNU General Public License version 2 as
   # published by the Free Software Foundation.

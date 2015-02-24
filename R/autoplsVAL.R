@@ -105,7 +105,7 @@ repeatedCV <- function (object, k = 100, segments = 4)
   invisible (result)     
 }
 
-guidedCV <- function (object, valist)
+clusterCV <- function (object, valist)
 {
   pred <- object$model$X
   targ <- object$model$Y

@@ -8,7 +8,7 @@ prepro <- function (X, method = 'bn')
     if (is.vector (X)) X <- X / sqrt (sum (X ^ 2))
     if (is.matrix (X)) X <- X / sqrt (rowSums (X ^ 2))         
     if (class (X) == 'RasterBrick' || class (X) == 'RasterStack')
-      X <- X / sqrt (stackApply (X ^ 2, rep (1, nlayers (X)), sum))
+      X <- X / sqrt (raster::stackApply (X ^ 2, rep (1, raster::nlayers (X)), sum))
   }
   invisible (X)
 }

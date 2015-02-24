@@ -6,13 +6,13 @@
 \alias{jack.test.autopls}
 \alias{metaval}
 \alias{repeatedCV}
+\alias{clusterCV}
 \title{
   Validate a fitted autopls model
 }
 \description{
-  Functions to extract R2 and RMSEP from \code{autopls} objects and for 
+  Functions to extract R2 and RMSEP from \code{autopls} objects, for 
   significance testing based on jackknife variance estimates for regression 
-  coefficients.
 }
 \usage{
   \method{R2}{autopls}(object, estimate, nc = 'inherit', ic = FALSE, \dots)
@@ -20,6 +20,7 @@
   jack.test.autopls (object, nc = 'inherit')
   metaval (object, method, estimate, ic)
   repeatedCV (object, k = 100, segments = 4)
+  clusterCV (object, valist)
 }
 \arguments{
   \item{object}{object of class \code{autopls}}
@@ -35,6 +36,8 @@
     components should be returned}
   \item{k}{number of cross-validations used in \code{repeatedCV}}  
   \item{segments}{number of cross-validation segments used in \code{repeatedCV}}
+  \item{valist}{list of segments. The elements are vectors of plots assigned to 
+    a cluster of samples}
   \item{\dots}{Arguments to be passed to methods}
 }
 \details{
@@ -44,7 +47,10 @@
   \code{\link[pls:jack.test]{jack.test}}. Other functions are specific 
   \code{autopls} functions. \code{metaval} is used for a summary of validation
   results during backselection. \code{repeatedCV} is a meta cross-validation 
-  (repeated ten-fold cross-validation).
+  (repeated ten-fold cross-validation). \code{clusterCV} is a leave-one-site-out
+  cross-validation to avoid effects of spatial or other autocorrelation. The 
+  elements of the list should be integer vectors specifying the indices of the
+  segments. 
 }
 \value{
   see \code{\link[pls:mvrVal]{mvrVal}} and \code{\link[pls:jack.test]{jack.test}}. 

@@ -1,6 +1,7 @@
 ## Exported functions:
 export(
        autopls,
+       clusterCV,
        confine,
        get.iter,
        get.lv,

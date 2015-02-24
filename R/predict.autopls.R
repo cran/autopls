@@ -59,11 +59,11 @@ predict.autopls <- function (object, dat, ...)
     dropped <- which (!subs)
     
     ## Get raster layers corresponding to predictors
-    if (length (subs) != nlayers (dat))
-      stop (paste ('Number of layers = ', nlayers (dat), 
+    if (length (subs) != raster::nlayers (dat))
+      stop (paste ('Number of layers = ', raster::nlayers (dat), 
         ', predictors before autopls backward selection) = ', 
         length (subs), sep = ""))  
-    else dat <- dropLayer (dat, dropped)
+    else dat <- raster::dropLayer (dat, dropped)
 
     ## make tiles if tile processing seems to be usefull     
     maxsize <- 500000    
@@ -85,7 +85,7 @@ predict.autopls <- function (object, dat, ...)
       
       for (i in 1:tiles)
       {
-        v <- getValuesBlock (dat, row = lower [i], 
+        v <- raster::getValuesBlock (dat, row = lower [i], 
           nrows = (upper [i] - lower [i] + 1))             
         ## Preprocessing if appropriate
         if (prep != 'none') v <- prepro (v, method = 'bn')       
@@ -95,8 +95,8 @@ predict.autopls <- function (object, dat, ...)
       }
       
       if (prog) close (pb)
-      prediction <- raster (dat, 1)
-      values (prediction) <-res
+      prediction <- raster::raster (dat, 1)
+      raster::values (prediction) <-res
     }
     else
     {                                                                         
@@ -104,7 +104,7 @@ predict.autopls <- function (object, dat, ...)
       ## Preprocessing if appropriate
       if (prep != 'none') dat <- prepro (dat, method = 'bn')       
       cfdat <- dat * cf
-      prediction <- stackApply (cfdat, rep (1, sum (subs)), sum) + ic
+      prediction <- raster::stackApply (cfdat, rep (1, sum (subs)), sum) + ic
     }
   }
   return (prediction)

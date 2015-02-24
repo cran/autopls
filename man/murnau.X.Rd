@@ -18,6 +18,6 @@ by Schmidtlein et al. (2012).
 \source{
   Schmidtlein, S., Feilhauer, H., Bruelheide, H. (2012): Mapping plant
   strategy types using remote sensing. \emph{Journal of Vegetation Science}
-  \bold{early view}.
+  \bold{23}: 395--405. Open Access.
 }
 \keyword{datasets}

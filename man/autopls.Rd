@@ -9,9 +9,9 @@ Partial least squares regression with backward selection of predictors
 }
 \usage{
 autopls (formula, data, testset = NULL, tselect = "none", prep = "none", 
-  val = "LOO", spectral = TRUE, scaling = TRUE, stingy = TRUE, 
-  verbose = TRUE, backselect = "auto", jt.thresh = 0.1, vip.thresh = 0.2, 
-  jump = NA, lower = NA, method = "kernelpls")
+  val = "LOO", scaling = TRUE, stingy = TRUE, verbose = TRUE, 
+  backselect = "auto", jt.thresh = 0.1, vip.thresh = 0.2, jump = NA, 
+  lower = NA, method = "oscorespls")
 }
 \arguments{
   \item{formula}{
@@ -34,11 +34,6 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
   \item{val}{
      character. Validation used (\code{"CV"} or \code{"LOO"}, 
      see details)
-}
-  \item{spectral}{
-     logical. If \code{TRUE}, predictors are assumed to be reflectance
-     (implications for methods used in backward selection but ignored if 
-     there are methods specified in \code{backselect})
 }
   \item{scaling}{
      logical. if \code{TRUE}, predictors are scaled by dividing each variable 
@@ -80,8 +75,8 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
 }
   \item{method}{
      character string indicating what plsr method to use. \code{autopls}
-     works with the kernel algorithm (\code{"kernelpls"}) and with the 
-     orthogonal scores algorithm (\code{"oscorespls"})
+     works with the orthogonal scores algorithm (\code{"oscorespls"})
+	 and with the kernel algorithm (\code{"kernelpls"}). 
 }
 }
 \details{
@@ -118,10 +113,12 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
   
   Several methods for predictor selection are available. In default mode
   (\code{backselect = "auto"}) the selection follows an optimization procedure 
-  using methods A1, A2, A3, A4 and B2. \code{spectral = FALSE} restricts this 
-  selection to the A-methods. However, apart from A0 any user-defined 
-  combination can be selected using the \code{backselect} argument. 
-  The methods are coded as follows:  
+  using methods A1 and A3. However, apart from A0 any user-defined 
+  combination can be selected using the \code{backselect} argument. Note that 
+  VIP-based methods (A2, A3, B3 to B6) are meant to be used with the oscorespls
+  method and methods B1 to B6 and C1 do only make sense with sequences of 
+  spectral bands or similar sequences of autocorrelated predictors. The methods 
+  are coded as follows:  
   
   \emph{A) Filtering based on thresholds}
 
@@ -135,7 +132,7 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
   (B1) Filtering based on significance, thinning starting with local maxima 
   in weighted regression coefficients; (B2) filtering based on significance, 
   thinning starting with local maxima in significance; (B3) filtering based 
-  on significance, thinning starting with local maxima in vip; (B4) filtering 
+  on significance, thinning starting with local maxima in VIP; (B4) filtering 
   based on VIP, thinning starting with local maxima in weighted regression 
   coefficients; (B5) filtering based on VIP, thinning starting with local 
   maxima in significance; (B6) filtering based on VIP, thinning starting with 
@@ -210,8 +207,15 @@ autopls (formula, data, testset = NULL, tselect = "none", prep = "none",
   ## call autopls with the standard options
   model <- autopls (murnau.Y ~ murnau.X)
   
-  ## Plot
+  ## S3 plot method
   \dontrun{plot (model)}
+  \dontrun{plot (model, type = "rc")}
+  
+  ## Loading and score plots
+  \dontrun{plot (model$loadings, main = "Loadings")}
+  \dontrun{plot (model$loadings [,c(1,3)], main = "Loadings")}
+  \dontrun{plot (model$scores, main = "Scores")}
+  
 }
 \keyword{regression}
 \keyword{multivariate}
